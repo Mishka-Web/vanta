@@ -33,15 +33,29 @@ impl KeyModifiers {
 
     pub fn new(shift: bool, ctrl: bool, alt: bool) -> Self {
         let mut bits = 0;
-        if shift { bits |= Self::SHIFT; }
-        if ctrl { bits |= Self::CTRL; }
-        if alt { bits |= Self::ALT; }
+        if shift {
+            bits |= Self::SHIFT;
+        }
+        if ctrl {
+            bits |= Self::CTRL;
+        }
+        if alt {
+            bits |= Self::ALT;
+        }
         Self { bits }
     }
-    pub fn shift(self) -> bool { self.bits & Self::SHIFT != 0 }
-    pub fn ctrl(self) -> bool { self.bits & Self::CTRL != 0 }
-    pub fn alt(self) -> bool { self.bits & Self::ALT != 0 }
-    pub fn is_empty(self) -> bool { self.bits == 0 }
+    pub fn shift(self) -> bool {
+        self.bits & Self::SHIFT != 0
+    }
+    pub fn ctrl(self) -> bool {
+        self.bits & Self::CTRL != 0
+    }
+    pub fn alt(self) -> bool {
+        self.bits & Self::ALT != 0
+    }
+    pub fn is_empty(self) -> bool {
+        self.bits == 0
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -56,13 +70,28 @@ pub fn read_key() -> io::Result<KeyEvent> {
     let mut record = MaybeUninit::<InputRecord>::uninit();
     loop {
         let mut read = 0u32;
-        let ok = unsafe { ReadConsoleInputW(GetStdHandle(STD_INPUT_HANDLE), record.as_mut_ptr(), 1, &mut read) };
-        if ok == 0 { return Err(io::Error::last_os_error()); }
+        let ok = unsafe {
+            ReadConsoleInputW(
+                GetStdHandle(STD_INPUT_HANDLE),
+                record.as_mut_ptr(),
+                1,
+                &mut read,
+            )
+        };
+        if ok == 0 {
+            return Err(io::Error::last_os_error());
+        }
         let record = unsafe { record.assume_init() };
-        if record.event_type != KEY_EVENT { continue; }
+        if record.event_type != KEY_EVENT {
+            continue;
+        }
         let event = unsafe { record.event.key_event };
-        if event.key_down == 0 || event.repeat_count == 0 { continue; }
-        if is_modifier_key(event.virtual_key_code) { continue; }
+        if event.key_down == 0 || event.repeat_count == 0 {
+            continue;
+        }
+        if is_modifier_key(event.virtual_key_code) {
+            continue;
+        }
         return Ok(decode_key_event(event));
     }
 }
@@ -100,10 +129,16 @@ fn decode_key_event(event: KeyEventRecord) -> KeyEvent {
         VK_UP => KeyCode::Up,
         VK_DOWN => KeyCode::Down,
         VK_F1..=VK_F12 => KeyCode::F((event.virtual_key_code - VK_F1 + 1) as u8),
-        _ if event.unicode_char != 0 => KeyCode::Char(char::from_u32(event.unicode_char as u32).unwrap_or('\0')),
+        _ if event.unicode_char != 0 => {
+            KeyCode::Char(char::from_u32(event.unicode_char as u32).unwrap_or('\0'))
+        }
         other => KeyCode::Unknown(other),
     };
-    KeyEvent { code, modifiers, repeat: event.repeat_count }
+    KeyEvent {
+        code,
+        modifiers,
+        repeat: event.repeat_count,
+    }
 }
 
 fn decode_modifiers(state: u32) -> KeyModifiers {
@@ -149,10 +184,16 @@ const SHIFT_PRESSED: u32 = 0x0010;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-struct InputRecord { event_type: u16, event: InputEvent }
+struct InputRecord {
+    event_type: u16,
+    event: InputEvent,
+}
 #[repr(C)]
 #[derive(Clone, Copy)]
-union InputEvent { key_event: KeyEventRecord, raw: [u8; 16] }
+union InputEvent {
+    key_event: KeyEventRecord,
+    raw: [u8; 16],
+}
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 struct KeyEventRecord {
@@ -166,7 +207,12 @@ struct KeyEventRecord {
 
 unsafe extern "system" {
     fn GetStdHandle(n_std_handle: u32) -> *mut std::ffi::c_void;
-    fn ReadConsoleInputW(h_console_input: *mut std::ffi::c_void, lp_buffer: *mut InputRecord, n_length: u32, lp_number_of_events_read: *mut u32) -> i32;
+    fn ReadConsoleInputW(
+        h_console_input: *mut std::ffi::c_void,
+        lp_buffer: *mut InputRecord,
+        n_length: u32,
+        lp_number_of_events_read: *mut u32,
+    ) -> i32;
 }
 
 #[cfg(test)]
@@ -174,8 +220,12 @@ mod tests {
     use super::*;
     #[test]
     fn modifiers_decode_independently() {
-        let none = decode_modifiers(0); assert!(none.is_empty());
-        let shift = decode_modifiers(SHIFT_PRESSED); assert!(shift.shift()); assert!(!shift.ctrl()); assert!(!shift.alt());
+        let none = decode_modifiers(0);
+        assert!(none.is_empty());
+        let shift = decode_modifiers(SHIFT_PRESSED);
+        assert!(shift.shift());
+        assert!(!shift.ctrl());
+        assert!(!shift.alt());
         assert!(decode_modifiers(LEFT_CTRL_PRESSED).ctrl());
         assert!(decode_modifiers(RIGHT_ALT_PRESSED).alt());
     }
@@ -186,7 +236,14 @@ mod tests {
     }
     #[test]
     fn function_keys_map_to_number() {
-        let event = KeyEventRecord { key_down: 1, repeat_count: 1, virtual_key_code: VK_F12, virtual_scan_code: 0, unicode_char: 0, control_key_state: 0 };
+        let event = KeyEventRecord {
+            key_down: 1,
+            repeat_count: 1,
+            virtual_key_code: VK_F12,
+            virtual_scan_code: 0,
+            unicode_char: 0,
+            control_key_state: 0,
+        };
         assert_eq!(decode_key_event(event).code, KeyCode::F(12));
     }
     #[test]
@@ -199,5 +256,4 @@ mod tests {
         assert!(!is_modifier_key(VK_TAB));
         assert!(!is_modifier_key(VK_F12));
     }
-
 }

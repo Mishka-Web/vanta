@@ -142,12 +142,7 @@ fn line_len(row: usize) -> usize {
 }
 
 #[cfg(windows)]
-fn draw_ui(
-    screen: &mut Screen,
-    cursor: &Cursor,
-    viewport: &Viewport,
-    last_key: Option<KeyEvent>,
-) {
+fn draw_ui(screen: &mut Screen, cursor: &Cursor, viewport: &Viewport, last_key: Option<KeyEvent>) {
     screen.clear();
 
     let editor_height = screen.height().saturating_sub(2) as usize;
@@ -187,7 +182,8 @@ fn draw_ui(
 
     let visible_row = cursor.row().saturating_sub(viewport.top());
     let screen_cursor_row = visible_row.min(editor_height.saturating_sub(1)) as u16;
-    let screen_cursor_col = (5 + cursor.col()).min(screen.width().saturating_sub(1) as usize) as u16;
+    let screen_cursor_col =
+        (5 + cursor.col()).min(screen.width().saturating_sub(1) as usize) as u16;
 
     screen.set_cursor(screen_cursor_row, screen_cursor_col);
 }
