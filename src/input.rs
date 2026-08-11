@@ -10,10 +10,9 @@ pub enum Key {
     Right,
     Up,
     Down,
-    Unknown(u8),
+    Unknown(u16),
 }
 
-#[cfg(windows)]
 pub fn read_key() -> io::Result<Key> {
     use std::mem::MaybeUninit;
 
@@ -58,31 +57,22 @@ pub fn read_key() -> io::Result<Key> {
             _ if event.unicode_char != 0 => {
                 Key::Char(char::from_u32(event.unicode_char as u32).unwrap_or('\0'))
             }
-            _ => Key::Unknown((event.virtual_key_code & 0xff) as u8),
+            other => Key::Unknown(other),
         });
     }
 }
 
-#[cfg(windows)]
 const STD_INPUT_HANDLE: u32 = (-10i32) as u32;
-#[cfg(windows)]
 const KEY_EVENT: u16 = 0x0001;
-#[cfg(windows)]
+
 const VK_RETURN: u16 = 0x000D;
-#[cfg(windows)]
 const VK_BACK: u16 = 0x0008;
-#[cfg(windows)]
 const VK_ESCAPE: u16 = 0x001B;
-#[cfg(windows)]
 const VK_LEFT: u16 = 0x0025;
-#[cfg(windows)]
 const VK_UP: u16 = 0x0026;
-#[cfg(windows)]
 const VK_RIGHT: u16 = 0x0027;
-#[cfg(windows)]
 const VK_DOWN: u16 = 0x0028;
 
-#[cfg(windows)]
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct InputRecord {
@@ -90,7 +80,6 @@ struct InputRecord {
     event: InputEvent,
 }
 
-#[cfg(windows)]
 #[repr(C)]
 #[derive(Clone, Copy)]
 union InputEvent {
@@ -98,7 +87,6 @@ union InputEvent {
     raw: [u8; 16],
 }
 
-#[cfg(windows)]
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct KeyEventRecord {
@@ -110,9 +98,9 @@ struct KeyEventRecord {
     control_key_state: u32,
 }
 
-#[cfg(windows)]
-extern "system" {
+unsafe extern "system" {
     fn GetStdHandle(n_std_handle: u32) -> *mut std::ffi::c_void;
+
     fn ReadConsoleInputW(
         h_console_input: *mut std::ffi::c_void,
         lp_buffer: *mut InputRecord,
