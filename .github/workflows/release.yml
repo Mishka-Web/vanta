@@ -1,24 +1,45 @@
 name: Release
+
 on:
   push:
-    tags: ["v*"]
+    tags:
+      - "v*"
+
 permissions:
   contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo build --release
-      - name: Prepare artifact
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Prepare release package
         shell: powershell
         run: |
-          New-Item -ItemType Directory -Force dist
-          Copy-Item target\release\vanta.exe dist\vanta.exe
-          Copy-Item README.md dist\README.md
-          Copy-Item CHANGELOG.md dist\CHANGELOG.md
-          Compress-Archive -Path dist\* -DestinationPath vanta-windows-x64.zip
-      - uses: softprops/action-gh-release@v2
+          New-Item -ItemType Directory -Force package
+          Copy-Item target\release\vanta.exe package\vanta.exe
+          Copy-Item README.md package\README.md
+          Copy-Item CHANGELOG.md package\CHANGELOG.md
+          Copy-Item INSTALL.ps1 package\INSTALL.ps1
+          Copy-Item install.cmd package\install.cmd
+          Copy-Item UNINSTALL.ps1 package\UNINSTALL.ps1
+          Copy-Item uninstall.cmd package\uninstall.cmd
+          Copy-Item scripts\install.ps1 package\install.ps1
+          Copy-Item scripts\uninstall.ps1 package\uninstall.ps1
+          Compress-Archive -Path package\* -DestinationPath vanta-windows-x64.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          files: vanta-windows-x64.zip
+          generate_release_notes: true
+          files: |
+            vanta-windows-x64.zip

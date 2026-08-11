@@ -1,35 +1,66 @@
-# VANTA v0.0.3
+# VANTA v0.0.5
 
-Keyboard-first modal editor built from scratch in Rust.
+Keyboard-first modal editor being built from scratch in Rust.
 
-This milestone still uses zero third-party dependencies.
+## v0.0.5 — Distribution / Installer
 
-## v0.0.3 — Input Engine
+VANTA can now be installed and invoked as a normal Windows CLI product.
 
-Structured keyboard input:
-
-- KeyCode
-- KeyModifiers
-- Ctrl / Alt / Shift
-- Tab / Delete / Insert
-- Home / End
-- PageUp / PageDown
-- F1-F12
-- repeat count
-
-## Run
+### Build
 
 ```powershell
-cargo run
+cargo build --release
 ```
 
-Plain `q` exits.
+### Install from the repository
 
-## Checks
+```cmd
+install.cmd
+```
+
+`install.cmd` launches the PowerShell installer with a process-local execution-policy bypass, so the user does not need to change the machine or user PowerShell policy.
+
+Open a new terminal:
 
 ```powershell
-cargo fmt --all -- --check
-cargo check
-cargo clippy -- -D warnings
-cargo test
+vanta --version
+vanta --help
+vanta
+```
+
+Default location:
+
+```text
+%LOCALAPPDATA%\Programs\VANTA\vanta.exe
+```
+
+The installer adds that folder to the current user's persistent PATH. When launched from CMD via `install.cmd`, it also refreshes PATH in the current CMD session.
+
+### Uninstall
+
+```cmd
+uninstall.cmd
+```
+
+### GitHub Release
+
+Pushing a `v*` tag builds `vanta.exe` and publishes:
+
+```text
+vanta-windows-x64.zip
+```
+
+The release ZIP contains the executable, installer, uninstaller, README and changelog.
+The end user does not need Rust or Cargo.
+
+## Editor controls
+
+```text
+h / Left      move left
+j / Down      move down
+k / Up        move up
+l / Right     move right
+Home          beginning of line
+End           end of line
+q             quit
 ```
