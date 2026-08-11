@@ -1,31 +1,21 @@
-# VANTA v0.0.2
+# VANTA v0.0.3
 
-Keyboard-first terminal editor built from scratch in Rust.
+Keyboard-first modal editor built from scratch in Rust.
 
-This milestone intentionally has **zero third-party dependencies**.
+This milestone still uses zero third-party dependencies.
 
-## What's new in 0.0.2
+## v0.0.3 — Input Engine
 
-The editor now has a real virtual screen layer:
+Structured keyboard input:
 
-```text
-Input
-  ↓
-App
-  ↓
-Screen
-  ├── Cell[]
-  ├── width
-  ├── height
-  └── cursor
-  ↓
-Terminal renderer
-```
-
-Current controls:
-- any key: show key event
-- arrows: move the virtual cursor
-- `q`: quit
+- KeyCode
+- KeyModifiers
+- Ctrl / Alt / Shift
+- Tab / Delete / Insert
+- Home / End
+- PageUp / PageDown
+- F1-F12
+- repeat count
 
 ## Run
 
@@ -33,4 +23,13 @@ Current controls:
 cargo run
 ```
 
-Windows only for now.
+Plain `q` exits.
+
+## Checks
+
+```powershell
+cargo fmt --all -- --check
+cargo check
+cargo clippy -- -D warnings
+cargo test
+```

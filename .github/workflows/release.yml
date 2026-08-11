@@ -1,27 +1,16 @@
 name: Release
-
 on:
   push:
-    tags:
-      - "v*"
-
+    tags: ["v*"]
 permissions:
   contents: write
-
 jobs:
   build-windows:
     runs-on: windows-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Build release
-        run: cargo build --release
-
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
       - name: Prepare artifact
         shell: powershell
         run: |
@@ -30,9 +19,6 @@ jobs:
           Copy-Item README.md dist\README.md
           Copy-Item CHANGELOG.md dist\CHANGELOG.md
           Compress-Archive -Path dist\* -DestinationPath vanta-windows-x64.zip
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
-          files: |
-            vanta-windows-x64.zip
+          files: vanta-windows-x64.zip
